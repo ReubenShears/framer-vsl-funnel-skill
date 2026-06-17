@@ -57,6 +57,9 @@ them as blocking:
    Do not ship a trimmed-down version.
 9. **Social image + favicon are GENERATED, not the stretched logo** (§8b) — a proper 1200×630 OG card and
    a 64×64 logo-mark favicon. Never set the raw wordmark as the social image.
+10. **Handoff writes the funnel URL to the CLIENT record only** (§11) — `Client Data` (1000911)
+    `Framer Production URL` field. The demo table (`Demo Landing Page Data` 1024310) is READ-ONLY; never
+    overwrite the demo's `Live Demo URL` with the Framer URL.
 
 Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
 declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, clipped text, a stub
@@ -472,7 +475,12 @@ Fix everything the audit surfaces, republish, and re-run the audit until clean.
 **Handoff** (once the audit is clean):
 - **Pool row** (`Framer Project Data` 1033106) → `Status="Live"`, live `.framer.app` URL into `Notes`.
   If you claimed a row but failed before publish, set it `Status="Error"` with a note — never leave it `Claimed`.
-- **Demo row** (`Demo Landing Page Data` 1024310) → note the Framer funnel URL in `Notes`.
+- **Client record — the funnel URL goes HERE** (`Client Data` table `1000911`): find the client row
+  (match `Client ID` = the client_id, e.g. `TRUSTRELATIONS`; else `Company` ≈ the prospect name) and set
+  the **`Framer Production URL`** field (id `9096230`) to the live `.framer.app` URL.
+- **DO NOT touch the demo** (`Demo Landing Page Data` 1024310). The demo and the production funnel are
+  SEPARATE artifacts — never overwrite `Live Demo URL` (or any demo field) with the Framer URL. Leave the
+  demo row exactly as it is. (A failed run clobbered the demo URL — do not repeat.)
 - **GHL** → if the lead exists, write the funnel URL onto the matching CRM record: find the contact by
   domain, then write the custom field **by ID `6dtdKnKMkB659ZVlsRof`** (writing by key silently fails).
 - **Slack** → post to **`C0AN653QCF2`** (`#5-asset-generation`, same channel as the demo builder) with
