@@ -57,9 +57,11 @@ them as blocking:
    Do not ship a trimmed-down version.
 9. **Social image + favicon are GENERATED, not the stretched logo** (§8b) — a proper 1200×630 OG card and
    a 64×64 logo-mark favicon. Never set the raw wordmark as the social image.
-10. **Handoff writes the funnel URL to the CLIENT record only** (§11) — `Client Data` (1000911)
-    `Framer Production URL` field. The demo table (`Demo Landing Page Data` 1024310) is READ-ONLY; never
-    overwrite the demo's `Live Demo URL` with the Framer URL.
+10. **Handoff writes funnel URLs to the CLIENT record only** (§11) — `Client Data` (1000911):
+    `Framer Production URL` (live URL) AND `Framer Remix URL`
+    (`https://framer.com/projects/new?duplicate=<projectId>`), only if the client row is found (else skip,
+    don't create). The demo table (`Demo Landing Page Data` 1024310) is READ-ONLY; never overwrite the
+    demo's `Live Demo URL`.
 
 Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
 declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, clipped text, a stub
@@ -84,8 +86,10 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    have it (`git clone https://github.com/ReubenShears/demos` — remote run won't have it locally; if a local
    `demos` checkout exists, `git pull` it instead), then read **`<demos>/<Slug>/index.html`**. The HTML wins
    on copy/structure/sections; cross-check brand tokens against the Baserow row.
-3. **client_id / redirect_url / typeform_url** — from the client record (Client Data) where available;
-   `client_id` is the UPPERCASE slug. If any are unknown, build with clearly-marked placeholders and flag them.
+3. **client_id / redirect_url / typeform_url** — look up the client row in **`Client Data` (1000911)**
+   (match `Client ID`, else `Company` ≈ prospect). Read **`Typeform URL`** (field `9096231`) for
+   `typeform_url`. `client_id` is the UPPERCASE slug; `redirect_url` is `https://<domain>/typeform`. If the
+   client row or a value is missing, build with clearly-marked placeholders and flag them (don't block).
 
 | Input | Notes |
 |-------|-------|
@@ -475,9 +479,15 @@ Fix everything the audit surfaces, republish, and re-run the audit until clean.
 **Handoff** (once the audit is clean):
 - **Pool row** (`Framer Project Data` 1033106) → `Status="Live"`, live `.framer.app` URL into `Notes`.
   If you claimed a row but failed before publish, set it `Status="Error"` with a note — never leave it `Claimed`.
-- **Client record — the funnel URL goes HERE** (`Client Data` table `1000911`): find the client row
-  (match `Client ID` = the client_id, e.g. `TRUSTRELATIONS`; else `Company` ≈ the prospect name) and set
-  the **`Framer Production URL`** field (id `9096230`) to the live `.framer.app` URL.
+- **Client record** (`Client Data` table `1000911`) — find the client row (match `Client ID` = the
+  client_id, e.g. `TRUSTRELATIONS`; else `Company` ≈ the prospect name). **If found**, set both:
+  - **`Framer Production URL`** (id `9096230`) = the live `.framer.app` URL.
+  - **`Framer Remix URL`** (id `9096261`) = `https://framer.com/projects/new?duplicate=<Project ID>`
+    (constructed deterministically from the claimed project id — no API needed; this is the go-live
+    "duplicate this funnel" link).
+
+  **If no client row matches, leave it — do NOT create a row.** Skip silently and note it in the report.
+  Still surface the remix link in the Slack handoff regardless.
 - **DO NOT touch the demo** (`Demo Landing Page Data` 1024310). The demo and the production funnel are
   SEPARATE artifacts — never overwrite `Live Demo URL` (or any demo field) with the Framer URL. Leave the
   demo row exactly as it is. (A failed run clobbered the demo URL — do not repeat.)
@@ -495,6 +505,7 @@ Fix everything the audit surfaces, republish, and re-run the audit until clean.
   > :link:  *Funnel:*  <{{liveUrl}}|{{liveUrl_short}}>
   > :clapper:  *Built from demo:*  <{{demoUrl}}|demos.optimally.ltd/{{slug}}>
   > :frame_with_picture:  *Framer project:*  `{{projectId}}`
+  > :repeat:  *Remix (go-live):*  <https://framer.com/projects/new?duplicate={{projectId}}|duplicate this funnel>
 
   > :art:  *Brand:*  `{{primary}}`  /  `{{secondary}}`
   > :white_check_mark:  *Status:*  Published  ·  Audit passed  ·  Pool row marked Live
