@@ -98,6 +98,24 @@ un-instantiated component's internals across batches fails — see Gotchas).
   the ✕ frame set `onTap.0.action="TRIGGER_EVENT" onTap.0.controls.id="var(--variable-<onCloseVarId>)"`.
   Each overlay's modal instance then handles it with `onClose.0.action="DISMISS_OVERLAY"` (see §5). The
   dimmed dismissible backdrop covers click-outside.
+- **FAQ Item (accordion)** — a 2-variant toggle component. Build it across **3 batches** (variable
+  binding needs canonical var ids, so you cannot do it in one):
+  1. **Component + Closed variant + variables.** `+ComponentNode faqItem name="FAQ Item"`; a `Closed`
+     FrameNode (`width="100%"`, a **fixed pixel height** ≈ the collapsed header height e.g. `62px`,
+     `layout=stack vertical`, `gap 12`, `padding 19px 22px`, brand card fill, `radius 10`, `border`,
+     `overflow="clip"`, `cursor="pointer"`); two string Variables `Question` and `Answer`
+     (`scope="<faqItem>"`). Capture the renamed canonical ids; then `serialize` the component to read the
+     two variable ids (their control keys are `$control__question` / `$control__answer`).
+  2. **Inner nodes + Open variant** (parent into the canonical Closed-variant id): a `Row` frame
+     (`horizontal`, `space-between`) holding the question RichText (`text="var(--variable-<qVarId>)"`,
+     display font) + a `Plus` Lucide IconNode (brand accent); then the answer RichText BELOW the row
+     (`text="var(--variable-<aVarId>)"`, body font) — present but hidden by the Closed clip. Then
+     `CREATE_VARIANT faqOpen from="<closedId>"; SET faqOpen name="Open" height="auto"` (auto reveals it).
+  3. **Wire the toggle:** `SET <closedId> onTap.0.action="SET_VARIANT" onTap.0.controls.variant="<openId>"`;
+     `SET <openId> onTap.0.action="SET_VARIANT" onTap.0.controls.variant="<closedId>"`; rotate the plus
+     into an ✕ on open via the **compound id** `SET <openId><plusId> rotation="45deg"`.
+  Instantiate per question with `$control__question` / `$control__answer` (instances default
+  `visible:"false"` — set true, `width="100%"`).
 
 ## 4. Full-width VSL sizing (the preferred pattern — match exactly)
 
@@ -208,7 +226,16 @@ on section headers; add `enter.stagger="0.07s"` on grids so cards cascade. CTA =
 ## 10. Polish rules
 
 - **No em dashes** anywhere (looks AI-generated). Replace `—` with `-`; in titles/metadata use `|`.
-- Smart quotes in copy. `© 2026`.
+- **CRITICAL — never use a spaced hyphen `" - "` as a clause separator.** Framer's render-time
+  **smart typography** silently converts `" - "` into an **en-dash `–`** on the published site (the DSL
+  stores a real hyphen, code 45, so it is INVISIBLE in `serialize`/canvas — only the published render
+  shows the en-dash). There is NO API toggle (`smartQuotes`/`smartTypography` attributes are pruned).
+  So in copy, replace every `" - "` with a **comma, colon, "and", or a full stop / two sentences** —
+  whichever reads best. UNSPACED hyphens are safe and do NOT convert: ranges (`1-2 weeks`,
+  `20-30 minutes`), compounds (`word-of-mouth`, `lead-gen`, `end-to-end`, `lock-in`), and a hyphen at
+  the very start of its own text run (e.g. a coloured headline accent run `" - Straight From "`) all
+  stay hyphens. After publishing, screenshot the live URL and scan for any `–`.
+- Smart quotes in copy (Framer auto-curls straight `'`/`"` on render — good, leave them straight in DSL).
 - Text `fontSize` MUST be in **px** ("48px") and set on the RichText **root** (not the inner block).
 - Image fills are cover-only — size a logo frame to the SVG's exact aspect ratio so it isn't cropped.
 
