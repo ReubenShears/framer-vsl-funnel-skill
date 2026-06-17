@@ -109,22 +109,29 @@ un-instantiated component's internals across batches fails — see Gotchas).
   the ✕ frame set `onTap.0.action="TRIGGER_EVENT" onTap.0.controls.id="var(--variable-<onCloseVarId>)"`.
   Each overlay's modal instance then handles it with `onClose.0.action="DISMISS_OVERLAY"` (see §5). The
   dimmed dismissible backdrop covers click-outside.
-- **FAQ Item (accordion)** — a 2-variant toggle component. Build it across **3 batches** (variable
-  binding needs canonical var ids, so you cannot do it in one):
+- **FAQ Item (accordion)** — a 2-variant toggle component. Build across **4 batches** (variable binding
+  needs canonical var ids; the answer-wrapper needs the closed-variant canonical id):
   1. **Component + Closed variant + variables.** `+ComponentNode faqItem name="FAQ Item"`; a `Closed`
-     FrameNode (`width="100%"`, a **fixed pixel height** ≈ the collapsed header height e.g. `62px`,
-     `layout=stack vertical`, `gap 12`, `padding 19px 22px`, brand card fill, `radius 10`, `border`,
+     FrameNode (`width="100%"`, **`height="auto"`** — do NOT use a fixed closed height, see WARNING below;
+     `layout=stack vertical`, `gap 8`, `padding 19px 22px`, brand card fill, `radius 10`, `border`,
      `overflow="clip"`, `cursor="pointer"`); two string Variables `Question` and `Answer`
-     (`scope="<faqItem>"`). Capture the renamed canonical ids; then `serialize` the component to read the
-     two variable ids (their control keys are `$control__question` / `$control__answer`).
-  2. **Inner nodes + Open variant** (parent into the canonical Closed-variant id): a `Row` frame
-     (`horizontal`, `space-between`) holding the question RichText (`text="var(--variable-<qVarId>)"`,
-     display font) + a `Plus` Lucide IconNode (brand accent); then the answer RichText BELOW the row
-     (`text="var(--variable-<aVarId>)"`, body font) — present but hidden by the Closed clip. Then
-     `CREATE_VARIANT faqOpen from="<closedId>"; SET faqOpen name="Open" height="auto"` (auto reveals it).
-  3. **Wire the toggle:** `SET <closedId> onTap.0.action="SET_VARIANT" onTap.0.controls.variant="<openId>"`;
+     (`scope="<faqItem>"`). Capture canonical ids; `serialize` to read the two variable ids (control keys
+     `$control__question` / `$control__answer`).
+  2. **Inner nodes** (parent into the canonical Closed-variant id): a `Row` frame (`horizontal`,
+     `space-between`) holding the question RichText (`text="var(--variable-<qVarId>)"`, display font,
+     `width="1fr"`) + a `Plus` Lucide IconNode (brand accent, fixed 24px); then an **answer wrapper**
+     FrameNode (`width="100%"`, **`height="0px"`, `overflow="clip"`**, vertical) and inside it the answer
+     RichText (`text="var(--variable-<aVarId>)"`, body font, `width="100%"`). Capture the wrapper's id.
+  3. **Open variant:** `CREATE_VARIANT faqOpen from="<closedId>"; SET faqOpen name="Open"`; then reveal
+     the answer **only in Open** via the compound id: `SET <openId><answerWrapperId> height="auto"`.
+  4. **Wire the toggle:** `SET <closedId> onTap.0.action="SET_VARIANT" onTap.0.controls.variant="<openId>"`;
      `SET <openId> onTap.0.action="SET_VARIANT" onTap.0.controls.variant="<closedId>"`; rotate the plus
-     into an ✕ on open via the **compound id** `SET <openId><plusId> rotation="45deg"`.
+     into an ✕ on open via the compound id `SET <openId><plusId> rotation="45deg"`.
+  **WARNING — never use a fixed pixel height on the Closed variant.** A fixed closed height (e.g. 62px)
+  reveals the top of the answer ("answer peeks below the question") and breaks entirely when a question
+  wraps to 2 lines (mobile). The robust pattern is: Closed variant `height="auto"` (fits the question
+  row), the answer lives in a **height-0 clipped wrapper**, and ONLY the Open variant sets that wrapper
+  to `height="auto"`. This collapses/expands cleanly for any question length and still animates.
   Instantiate per question with `$control__question` / `$control__answer` (instances default
   `visible:"false"` — set true, `width="100%"`).
 
@@ -280,7 +287,14 @@ Keep ALL section H2 the SAME size — never let one section be 38 and another 34
 - When you add or restyle any text, decide its colour by its parent section's `fill`. Verify on the
   published screenshot that every title/body is legible on its band.
 
-### 10e. Other polish
+### 10e. Layout — flex children that share a row with a fixed-width sibling MUST be `width="1fr"`, never `100%`
+In a horizontal stack (e.g. icon + text feature rows, or a fixed-width image + text column like the
+founder section), a text/content child set to `width="100%"` tries to be the full parent width and
+**overflows past the fixed sibling — the right edge gets clipped** (text cut off mid-word). Always set the
+flexible child to `width="1fr"` so it takes the *remaining* space. This is a top cause of "text is cut
+off". (Vertical stacks are fine with `width="100%"`.)
+
+### 10f. Other polish
 - **No em dashes** anywhere (looks AI-generated). Replace `—` with `-`; in titles/metadata use `|`.
 - **CRITICAL — never use a spaced hyphen `" - "` as a clause separator.** Framer's render-time
   **smart typography** silently converts `" - "` into an **en-dash `–`** on the published site (the DSL
@@ -302,19 +316,39 @@ Keep ALL section H2 the SAME size — never let one section be 38 and another 34
 (`readProject [{type:"screenshot", url}]`) — overlays/animations don't show in canvas/static shots, so
 the modal must be click-tested live.
 
-**Because scroll-reveal sections render at `opacity:0` in a published static screenshot, also capture each
-section as a CANVAS shot by node id** (`readProject [{type:"screenshot", id:"<sectionId>"}]`) — canvas
-ignores `appearEffect`, so this is how you actually QA content/typography. Run this **QA scan** on every
-section before declaring done:
+**MANDATORY final full audit — do NOT declare done without it.** Quality drifts silently (styling wipes,
+overflow clips, contrast, peeking answers), so end EVERY build/dry-run with both an automated rect audit
+and a visual QA scan.
+
+**(1) Automated overflow/clip audit (run on every page breakpoint).** Serialize the page deep and flag
+(a) any node whose rendered rect extends past its parent's right/bottom edge (true clipping), and (b) the
+flex-overflow signature (a horizontal stack with both a fixed-px-width child and a `width="100%"` child →
+fix the flexible child to `1fr`, §10e). It must come back **0 overflow / 0 flex-risk**:
+```js
+const tree = await framer.agent.serialize({ id: breakpointId, depth: 20 });
+(function w(n,p){ const a=n.attributes||{};
+  if(p && n.$rect && p.$rect && (n.$rect.x+n.$rect.width)-(p.$rect.x+p.$rect.width) > 1.5)
+     console.log("OVERFLOW", n.id, (typeof a.text==="string"?a.text.slice(0,30):n.type));
+  if(a.layout==="stack" && a.stackDirection==="horizontal"){
+     const ws=(n.children||[]).map(c=>(c.attributes||{}).width||"");
+     if(ws.some(x=>/px$/.test(x)) && ws.some(x=>x==="100%")) console.log("FLEXRISK", n.id, ws); }
+  (n.children||[]).forEach(c=>w(c,n)); })(tree,null);
+```
+
+**(2) Visual QA scan.** Scroll-reveal sections render at `opacity:0` in a published static screenshot, so
+capture each section as a CANVAS shot by node id (`readProject [{type:"screenshot", id:"<sectionId>"}]`) —
+canvas ignores `appearEffect` — and check every section:
 - **Type scale:** every section H2 is the same size (§10b); no title shrunk to ~16px.
-- **Alignment:** every section header is centered; hero is fully centered; CTA centered (§10c).
+- **Alignment:** every section header centered; hero fully centered; CTA centered (§10c).
 - **Contrast:** no dark/ink text on a dark band; no cream text on a light band (§10d).
 - **Default-signature:** no text accidentally 16px / black / left (the `SET text` styling-wipe — §10a).
+- **Overflow/clip:** no text cut off at an edge (cross-check the rect audit; §10e).
+- **FAQ:** closed items show ONLY the question, no answer peeking (§3 FAQ WARNING).
 - **No en-dashes:** scan for `–` from the smart-typography conversion (§10c).
-- **No clipping:** every page breakpoint is `height="auto"` (§2); content runs to the footer.
+- **No page clipping:** every page breakpoint is `height="auto"` (§2); content runs to the footer.
 
-Report: live URLs, the placeholders still to fill (client_id / domain / typeform_url), and to delete any
-unused components in the Framer assets panel.
+Fix everything the audit surfaces, republish, and re-run the audit until clean. Report: live URLs, the
+placeholders still to fill (client_id / domain / typeform_url), and to delete any unused components.
 
 ## Gotchas (these cost real time — heed them)
 See [[framer-agents]] for the full list. The big ones:
