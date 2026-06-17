@@ -83,11 +83,21 @@ un-instantiated component's internals across batches fails — see Gotchas).
   (use the client's ID), and the **Meta disclaimer** fine print (REQUIRED — see [[meta-disclaimer-footer]]):
   "This site is not a part of the Facebook website or Facebook Inc. Additionally, this site is NOT
   endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc." Place a Footer instance on every page.
-- **Opt-in Modal** — white box (`radius 20`, `padding 50px 0 6px 0`, `overflow hidden`) holding the
-  checkout Embed (height ~384) plus, absolutely positioned OVER the embed top: a progress track + fill
-  (brand accent, ~47%), a "47%" label, the title (font on the RichText **root**, sentence case, e.g.
-  "Get sent more info **from <Brand>** 👇"), and a close ✕ frame with `onTap.0.action="DISMISS_OVERLAY"`.
-  The Embed's `$control__type="html"`, `$control__hTML` = the exact opt-in embed (see §6).
+- **Opt-in Modal** — white box (`width="100%"`, `radius 20`, `padding 50px 0 6px 0`, `overflow hidden`,
+  `boxShadows.0="0px 40px 90px -24px rgba(0,0,0,0.45)"`) holding the checkout Embed (built-in Embed,
+  `width="100%" height="384px"`) plus, absolutely positioned OVER the embed top (all `zIndex 3`+):
+  a progress **track** (`top 22, left 24, right 92, height 8, radius 999, fill rgba(26,26,26,0.1),
+  overflow clip`) with a **fill** child (`top 0, left 0, height 8, width 47%, radius 999, brand accent`);
+  a **"47%"** label (`top 17, right 48`, brand accent, Figtree 600 12px); the **title** — font set on the
+  RichText **ROOT** (Figtree 700 20px, not on the inner block), `top 70, left 22, right 22`, sentence
+  case via runs: "Get sent more info " (ink) + "from <Brand>" (accent, bold) + " 👇"; and a **close ✕**
+  frame (`top 12, right 12, 32×32, radius 100%, zIndex 6`). The Embed's `$control__type="html"`,
+  `$control__hTML` = the exact opt-in embed (see §6).
+  **Close button (CRITICAL — `DISMISS_OVERLAY` directly on the ✕ does NOT work** because the overlay is
+  outside the component scope): add an `On Close` `+EventHandlerVariable` on the modal component, and on
+  the ✕ frame set `onTap.0.action="TRIGGER_EVENT" onTap.0.controls.id="var(--variable-<onCloseVarId>)"`.
+  Each overlay's modal instance then handles it with `onClose.0.action="DISMISS_OVERLAY"` (see §5). The
+  dimmed dismissible backdrop covers click-outside.
 
 ## 4. Full-width VSL sizing (the preferred pattern — match exactly)
 
@@ -106,13 +116,19 @@ Do NOT use relative `%` widths on desktop/tablet — they render wrong; use fixe
 
 Framer requires one `FixedOverlayNode` **per trigger** (a `FixedOverlayNode` can't live inside a
 component, and a shared overlay only opens from its own parent). So:
-1. For EACH CTA instance: `+FixedOverlayNode` parented to that CTA (dimmed `backdrop.dismissible="true"
-   backdrop.blockScroll="true"`), with a `+ComponentInstanceNode` of the **Opt-in Modal** inside
-   (`width="92%" maxWidth="560px" centerAnchorX="50%" centerAnchorY="50%" zIndex="10"`).
+1. For EACH CTA instance: `+FixedOverlayNode` parented to that CTA (dimmed `backdrop.fill="rgba(2,58,51,0.72)"
+   backdrop.dismissible="true" backdrop.blockScroll="true"`), with a `+ComponentInstanceNode` of the
+   **Opt-in Modal** inside (`visible="true"` — instances default to `false`! — `width="92%"
+   maxWidth="560px" centerAnchorX="50%" centerAnchorY="50%" zIndex="10"`).
 2. Wire each CTA: `SET <cta> onClick.0.action="SHOW_OVERLAY" onClick.0.controls.overlay="<overlayCanonicalId>"`.
    **CRITICAL:** `controls.overlay` only accepts a CANONICAL id (not a same-batch temp id), and the value
    is sticky — to (re)set it reliably do `SET <cta> onClick.0="null"` then re-SET with the canonical id.
-All overlays embed the SAME modal component, so the modal is edited in one place.
+3. Wire each modal instance's close: `SET <modalInstance> onClose.0.action="DISMISS_OVERLAY"` (the ✕
+   inside the component fires the exposed `On Close` event → this dismisses the overlay).
+All overlays embed the SAME modal component, so the modal is edited in one place. Build order that works:
+(a) build the modal component fully in one batch; (b) create the per-CTA overlays + instances (this
+instantiates the component); (c) re-point each CTA's `onClick.controls.overlay` to its overlay's
+canonical id with the clear-then-set; (d) wire each instance `onClose`.
 
 ## 6. Site-wide custom code (the CLI can only set site-level code — use the path-gating workaround)
 
