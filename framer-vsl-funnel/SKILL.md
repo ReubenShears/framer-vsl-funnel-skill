@@ -388,8 +388,25 @@ Fix everything the audit surfaces, republish, and re-run the audit until clean.
 - **Demo row** (`Demo Landing Page Data` 1024310) → note the Framer funnel URL in `Notes`.
 - **GHL** → if the lead exists, write the funnel URL onto the matching CRM record: find the contact by
   domain, then write the custom field **by ID `6dtdKnKMkB659ZVlsRof`** (writing by key silently fails).
-- **Slack** → summary in Optimally house style: mrkdwn `*bold*`, `<url|label>` links, `>` for grouped lines,
-  and **no em dashes**. Include: client, live funnel URL, claimed Framer project, placeholders still to fill.
+- **Slack** → post to **`C0AN653QCF2`** (`#5-asset-generation`, same channel as the demo builder) with
+  `slack_send_message`, in **Slack mrkdwn** (single-asterisk `*bold*`, `<url|label>` links, `>` quote
+  groups, NO em dashes, valid emoji shortcodes — `:frame_with_picture:` not `:framed_picture:`). Mirror the
+  demo builder's structure:
+  ```
+  :sparkles: *Production VSL Funnel Live*
+
+  *{{Company}}*   `{{client_id}}`
+
+  > :link:  *Funnel:*  <{{liveUrl}}|{{liveUrl_short}}>
+  > :clapper:  *Built from demo:*  <{{demoUrl}}|demos.optimally.ltd/{{slug}}>
+  > :frame_with_picture:  *Framer project:*  `{{projectId}}`
+
+  > :art:  *Brand:*  `{{primary}}`  /  `{{secondary}}`
+  > :white_check_mark:  *Status:*  Published  ·  Audit passed  ·  Pool row marked Live
+  ```
+  If any inputs were placeholders, add a final line: `> :warning:  *To fill:*  {{placeholders}}` (e.g.
+  Typeform URL, production domain). On a FAILED run, post a short failure note instead (prospect + the
+  blocking reason + that the pool row was released) so the channel reflects reality.
 
 Report: live URLs, the placeholders still to fill (client_id / domain / typeform_url), and to delete any
 unused components in the Framer assets panel.
