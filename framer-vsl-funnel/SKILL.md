@@ -23,11 +23,23 @@ edits go through `framer.agent.applyChanges(dsl, { pagePath })`.
 
 ---
 
-## 0. Inputs to gather (from the client DB / the demo)
+## 0. Inputs to gather (resolve these yourself from a `prospect` identifier)
+
+You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain). Resolve everything else:
+
+1. **Find the demo** — search Baserow **`Demo Landing Page Data`** (table `1024310`) for the prospect (match
+   `Prospect Name`, then `Slug`, then `Source URL`/`Live Demo URL`; if several, prefer `Status` =
+   Deployed/Sent/Live and most recent `Date Generated`). Capture `Slug`, `Live Demo URL`, `Headline`, `ICP`,
+   `Primary Colour`, `Secondary Colour`, `Logo URL`. If none match, stop and report "demo not found".
+2. **Get the demo CODE (source of truth for content + brand)** — `git -C "D:\Claude Cowork\demos" pull`, then
+   read **`D:\Claude Cowork\demos\<Slug>\index.html`** (repo `github.com/ReubenShears/demos`). The HTML wins
+   on copy/structure/sections; cross-check brand tokens against the Baserow row.
+3. **client_id / redirect_url / typeform_url** — from the client record (Client Data) where available;
+   `client_id` is the UPPERCASE slug. If any are unknown, build with clearly-marked placeholders and flag them.
 
 | Input | Notes |
 |-------|-------|
-| **Source demo** | The built demo (content + brand): copy, colours, fonts, logo URL, OG image. Scrape `demos.optimally.ltd/<slug>` or reuse the demo's brand tokens. |
+| **Source demo** | From step 1+2 above: the demo HTML at `demos/<Slug>/index.html` (content + brand): copy, colours, fonts, logo URL, OG image. |
 | **client_id** | From the client database (e.g. `WISPRFLOW`). Goes in the site config. |
 | **redirect_url** | The funnel's own `/typeform` URL on its production domain (e.g. `https://<domain>/typeform`). |
 | **typeform_url** | The client's booking Typeform (e.g. `https://optimally.typeform.com/to/XXXX`). |
@@ -359,8 +371,19 @@ canvas ignores `appearEffect` — and check every section:
 - **No en-dashes:** scan for `–` from the smart-typography conversion (§10c).
 - **No page clipping:** every page breakpoint is `height="auto"` (§2); content runs to the footer.
 
-Fix everything the audit surfaces, republish, and re-run the audit until clean. Report: live URLs, the
-placeholders still to fill (client_id / domain / typeform_url), and to delete any unused components.
+Fix everything the audit surfaces, republish, and re-run the audit until clean.
+
+**Handoff** (once the audit is clean):
+- **Pool row** (`Framer Project Data` 1033106) → `Status="Live"`, live `.framer.app` URL into `Notes`.
+  If you claimed a row but failed before publish, set it `Status="Error"` with a note — never leave it `Claimed`.
+- **Demo row** (`Demo Landing Page Data` 1024310) → note the Framer funnel URL in `Notes`.
+- **GHL** → if the lead exists, write the funnel URL onto the matching CRM record (find by domain, write the
+  custom field by ID, not key — see [[ghl-demo-link-field]]).
+- **Slack** → summary in Optimally house style (mrkdwn `*bold*`, `<url|label>`, `>` groups, no em dashes —
+  see [[slack-message-style]]): client, live funnel URL, claimed Framer project, placeholders still to fill.
+
+Report: live URLs, the placeholders still to fill (client_id / domain / typeform_url), and to delete any
+unused components in the Framer assets panel.
 
 ## Gotchas (these cost real time — heed them)
 See [[framer-agents]] for the full list. The big ones:
