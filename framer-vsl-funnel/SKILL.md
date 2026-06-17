@@ -21,6 +21,14 @@ This skill DRIVES the Framer Server API via the `@framer/agent` CLI. You MUST ha
 skill and run `session new` (which loads the project-scoped `framer-project-<id>` skill) first. All
 edits go through `framer.agent.applyChanges(dsl, { pagePath })`.
 
+> **⛔ THIS IS A FRAMER BUILD — NO GIT, EVER.** The funnel lives entirely in Framer. **Never `git add`,
+> `commit`, `branch`, `push`, or open a PR** — there is nothing to commit. The `demos` repo is **read-only
+> source** for the demo HTML; do not modify, gitignore, or commit in it. Clone the skill repo to a TEMP
+> dir **outside any bound repo** (e.g. `git clone … /tmp/framer-vsl-funnel-skill`) so the working tree
+> stays clean and no commit/PR stop-hook ever fires. If a stop-hook complains about untracked files, the
+> fix is to remove your temp clone / keep the tree clean — NOT to commit or PR. Output is the Framer URL
+> + the Baserow/Slack handoff only.
+
 ---
 
 ## ⛔ DEFINITION OF DONE — non-negotiable gates (read FIRST, enforce LAST)
@@ -82,10 +90,11 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    `Prospect Name`, then `Slug`, then `Source URL`/`Live Demo URL`; if several, prefer `Status` =
    Deployed/Sent/Live and most recent `Date Generated`). Capture `Slug`, `Live Demo URL`, `Headline`, `ICP`,
    `Primary Colour`, `Secondary Colour`, `Logo URL`. If none match, stop and report "demo not found".
-2. **Get the demo CODE (source of truth for content + brand)** — clone the demos repo if you don't already
-   have it (`git clone https://github.com/ReubenShears/demos` — remote run won't have it locally; if a local
-   `demos` checkout exists, `git pull` it instead), then read **`<demos>/<Slug>/index.html`**. The HTML wins
-   on copy/structure/sections; cross-check brand tokens against the Baserow row.
+2. **Get the demo CODE (source of truth for content + brand) — READ ONLY.** The `demos` repo is usually
+   already checked out (the routine's repo); just **read** `<demos>/<Slug>/index.html` from it. If it's not
+   present, clone it **read-only into a temp dir** (`git clone https://github.com/ReubenShears/demos
+   /tmp/demos`) and read from there. Never modify, `git pull` with changes, gitignore, or commit in this
+   repo. The HTML wins on copy/structure/sections; cross-check brand tokens against the Baserow row.
 3. **client_id / redirect_url / typeform_url** — look up the client row in **`Client Data` (1000911)**
    (match `Client ID`, else `Company` ≈ prospect). Read **`Typeform URL`** (field `9096231`) for
    `typeform_url`. `client_id` is the UPPERCASE slug; `redirect_url` is `https://<domain>/typeform`. If the
