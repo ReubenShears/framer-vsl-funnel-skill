@@ -53,6 +53,17 @@ Recreate the demo's premium VSL structure as Framer sections — direct children
 (`layout="stack"`, vertical, `height="auto"`, brand background, `overflow="clip"`). Keep one section
 max-width (e.g. `1024px`) for text content; the VSL breaks out wider (see §4).
 
+**CRITICAL — set the page breakpoint to `height="auto"`.** A brand-new Framer page (and every breakpoint
+you make with `CREATE_VARIANT`) defaults to a **FIXED height (~1000px)**, which CLIPS everything below the
+fold on the published site and the canvas. After building, `SET <pageBreakpointId> height="auto"` on the
+Desktop breakpoint **and** on each Tablet/Phone breakpoint. (`createWebPage` pages may start `auto`, but
+verify — set it anyway.) Symptom: page content is cut off / canvas frame ends after ~one viewport.
+
+**Center the hero** (eyebrow, H1, sublines, logo row all centered above the VSL) — the production funnel
+hero is ALWAYS centered for a clean VSL look and consistency with the centered video, even if the source
+demo's hero is left-aligned. Set the hero's top block `stackAlignment="center"` and `textAlignment="center"`
+on its eyebrow/H1/sublines. (Card sections like pains/solution/founder can stay left-aligned among themselves.)
+
 Sections (adapt to the demo): announcement banner → **hero** (logo, eyebrow, H1 with italic-accent runs,
 1 subline, **full-width VSL**, primary CTA, quote, social-proof avatars) → trust marquee (logo ticker) →
 pains (3-col cards) → **solution (use a DIFFERENT layout** than pains — e.g. 2-col horizontal feature
