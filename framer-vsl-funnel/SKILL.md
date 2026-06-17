@@ -55,6 +55,8 @@ them as blocking:
 8. **Custom code is the FULL config block** (§6) — includes the webinar branch (`use_webinar`/`webinar_id`,
    `.../form` checkout when webinar), full UTM passthrough, and the `/typeform` redirect + SPA observer.
    Do not ship a trimmed-down version.
+9. **Social image + favicon are GENERATED, not the stretched logo** (§8b) — a proper 1200×630 OG card and
+   a 64×64 logo-mark favicon. Never set the raw wordmark as the social image.
 
 Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
 declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, clipped text, a stub
@@ -326,7 +328,27 @@ like the home page, and include it in the §11 audit. Required sections, top to 
 6. **Urgency / reschedule line** — short paragraph about showing up on time.
 7. **Footer** — the Footer component instance.
 
-`metadata.title` uses "|" not a dash; `metadata.noIndex="true"`; set `socialImage`.
+`metadata.title` uses "|" not a dash; `metadata.noIndex="true"`; for the social image see §8b.
+
+## 8b. Social preview image + favicon (GENERATE a proper card — never stretch the logo)
+
+**Do NOT set the raw logo as the 1200×630 social image** — Framer stretches/crops it into a blurry mess
+(it happened: a zoomed `stRe` wordmark). Produce purpose-built images:
+
+- **Social preview (1200×630)** — a designed OG card: brand-gradient background + the logo at its TRUE
+  aspect ratio (centered, not stretched) + the H1/headline + a thin brand accent. The reliable way with
+  tools in hand: **build an offscreen 1200×630 "OG Card" frame** in the project (brand bg, logo image
+  sized to its real aspect, headline text), then **screenshot that node** (`readProject
+  [{type:"screenshot", id:"<ogCardId>"}]`) to get a crisp 1200×630 PNG. (Alternatively generate a branded
+  background via the Canva connector or an image-gen tool, then overlay the logo + headline — but the
+  offscreen-frame method is deterministic and on-brand, prefer it.)
+- **Favicon (64×64)** — use the logo **MARK/icon** (the chevron/symbol), NOT the full wordmark (a wordmark
+  is illegible at 64px). Same method: a 64×64 frame with the mark on brand or transparent, screenshot it.
+
+Set them as the project's Social Preview + Favicon in Site Settings. If the CLI can't set site-level
+images, OUTPUT both generated files and flag them as a one-click manual upload in Framer → Site Settings
+→ Site Images (like the custom-domain step). Either way: the OG image must be a clean card, the favicon a
+clean mark — neither a stretched logo. Verify the published page's OG image renders correctly.
 
 ## 9. Animations (subtle)
 
