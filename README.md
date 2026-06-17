@@ -1,36 +1,40 @@
-# Framer VSL Call Funnel — Production Skill
+# Framer VSL Call Funnel — Production Skills
 
-A Claude Code skill that turns an existing Optimally **demo** landing page into a **production-ready
-VSL call funnel inside Framer**, end to end — a funnel page whose CTAs open an opt-in modal (Optimally
-checkout embed) → `/typeform` redirect → Typeform booking → a `/confirmed` show-rate thank-you page.
+Claude skills that turn an existing Optimally **demo** landing page into a **production-ready VSL call
+funnel inside Framer**, end to end — a funnel page whose CTAs open an opt-in modal (Optimally checkout
+embed) → `/typeform` redirect → Typeform booking → a `/confirmed` show-rate thank-you page.
 
 This is **separate** from the demo-production skill (`vsl-funnel-demo`, which makes the static HTML demo).
-This skill rebuilds that demo as a fully editable, responsive Framer site with a working opt-in modal,
-the `/typeform` redirect, and a confirmation page.
 
-## What it covers
-- Recreating the demo's premium VSL structure as editable Framer sections (responsive).
-- Reusable components: **CTA Button** (brand colour, label control, breathe loop, size variants),
-  **VSL Embed** (16:9, URL/HTML control), **Footer** (logo, links, Meta disclaimer, "Site made by
-  Optimally" link), **Opt-in Modal** (progress bar + title + checkout embed + close).
-- Full-width VSL sizing (fixed px desktop/tablet, fluid phone).
-- The opt-in modal wiring (one overlay per CTA, shared modal component).
-- Site-wide custom code (config block + `buildOptimallyCheckoutUrl` + path-gated `/typeform` redirect
-  + SPA observer) — the workaround for Framer's site-level-only code.
-- The blank `/typeform` redirect page and the `/confirmed` confirmation page.
-- All the Framer-agent gotchas that cost time (px font sizes, aspectRatio rules, overlay/control
-  canonical-id quirks, loop-effect default spin, etc.).
+## Contents
+- [`framer-vsl-funnel/SKILL.md`](framer-vsl-funnel/SKILL.md) — the build skill. Resolves the demo from
+  Baserow, pulls its code from the `demos` repo, claims a project from the pool, rebuilds it as a
+  responsive Framer funnel (components, opt-in modal, `/typeform`, `/confirmed`, site code, animations),
+  runs a mandatory self-audit, publishes, and hands off (Baserow + GHL + Slack).
+- [`framer-project-pool/SKILL.md`](framer-project-pool/SKILL.md) — provision/top-up the pool of
+  pre-authorized blank Framer projects the build skill claims from.
 
-## Use it
-Install the `framer-vsl-funnel/` folder into your Claude Code skills directory
-(`~/.claude/skills/`), or have a routine pull this repo and copy it in. It requires the `@framer/agent`
-CLI (`npx @framer/agent@latest setup`) and the generated `framer` skill loaded first.
+## Remote / routine usage (no local skill — fetch this repo)
+A remote routine has nothing installed. It should:
+```bash
+git clone https://github.com/ReubenShears/framer-vsl-funnel-skill
+npx @framer/agent@latest setup          # installs the `framer` skill + CLI
+```
+Then **read and follow** `framer-vsl-funnel-skill/framer-vsl-funnel/SKILL.md` end to end. If it reports the
+project pool is empty, follow `framer-vsl-funnel-skill/framer-project-pool/SKILL.md` to top it up. The
+SKILL.md files are plain instructions — the agent reads and executes them; they don't need to be "installed".
 
-The skill's full instructions live in [`framer-vsl-funnel/SKILL.md`](framer-vsl-funnel/SKILL.md).
+## Local usage
+Copy `framer-vsl-funnel/` (and `framer-project-pool/`) into `~/.claude/skills/`. Requires the `framer`
+skill loaded first (`npx @framer/agent@latest setup`).
 
-## Inputs (per client, from the client DB)
-`client_id`, production `redirect_url` (`/typeform`), `typeform_url`, optional `use_webinar` + `webinar_id`.
+## Notes
+- These run **headless**: they claim a pre-authorized project from the Baserow pool (`Framer Project Data`)
+  and `project auth` with its per-project key — never the interactive `project new`.
+- `[[double-bracket]]` references in the SKILL.md files are optional internal Optimally memories; everything
+  load-bearing (the Meta disclaimer text, Slack house style, the GHL field ID, the Framer gotchas) is inline,
+  so the skills are self-contained for a remote run.
 
 ---
 Built for Optimally. Funnel CTAs forward all tracking params (utm/ad/partner/closer/setter/adset) into the
-checkout, and the footer credits `optimally.ltd/client-site?client=<client_id>`.
+checkout; the footer credits `optimally.ltd/client-site?client=<client_id>`.

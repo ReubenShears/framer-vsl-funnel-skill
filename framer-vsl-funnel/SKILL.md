@@ -377,10 +377,10 @@ Fix everything the audit surfaces, republish, and re-run the audit until clean.
 - **Pool row** (`Framer Project Data` 1033106) → `Status="Live"`, live `.framer.app` URL into `Notes`.
   If you claimed a row but failed before publish, set it `Status="Error"` with a note — never leave it `Claimed`.
 - **Demo row** (`Demo Landing Page Data` 1024310) → note the Framer funnel URL in `Notes`.
-- **GHL** → if the lead exists, write the funnel URL onto the matching CRM record (find by domain, write the
-  custom field by ID, not key — see [[ghl-demo-link-field]]).
-- **Slack** → summary in Optimally house style (mrkdwn `*bold*`, `<url|label>`, `>` groups, no em dashes —
-  see [[slack-message-style]]): client, live funnel URL, claimed Framer project, placeholders still to fill.
+- **GHL** → if the lead exists, write the funnel URL onto the matching CRM record: find the contact by
+  domain, then write the custom field **by ID `6dtdKnKMkB659ZVlsRof`** (writing by key silently fails).
+- **Slack** → summary in Optimally house style: mrkdwn `*bold*`, `<url|label>` links, `>` for grouped lines,
+  and **no em dashes**. Include: client, live funnel URL, claimed Framer project, placeholders still to fill.
 
 Report: live URLs, the placeholders still to fill (client_id / domain / typeform_url), and to delete any
 unused components in the Framer assets panel.
