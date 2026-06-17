@@ -491,31 +491,22 @@ Fix everything the audit surfaces, republish, and re-run the audit until clean.
 - **DO NOT touch the demo** (`Demo Landing Page Data` 1024310). The demo and the production funnel are
   SEPARATE artifacts — never overwrite `Live Demo URL` (or any demo field) with the Framer URL. Leave the
   demo row exactly as it is. (A failed run clobbered the demo URL — do not repeat.)
-- **GHL** → if the lead exists, write the funnel URL onto the matching CRM record: find the contact by
-  domain, then write the custom field **by ID `6dtdKnKMkB659ZVlsRof`** (writing by key silently fails).
-- **Slack** → post to **`C0AN653QCF2`** (`#5-asset-generation`, same channel as the demo builder) with
-  `slack_send_message`, in **Slack mrkdwn** (single-asterisk `*bold*`, `<url|label>` links, `>` quote
-  groups, NO em dashes, valid emoji shortcodes — `:frame_with_picture:` not `:framed_picture:`). Mirror the
-  demo builder's structure:
+- **No GHL / CRM writes.** Do NOT update GoHighLevel or any CRM contact. (Removed by request — the only
+  data writes are the pool row and the Client Data row above.)
+- **Slack** → post to **`C0AN653QCF2`** (`#5-asset-generation`) with `slack_send_message`, in **Slack
+  mrkdwn** (single-asterisk `*bold*`, `<url|label>` links, `>` quote groups, NO em dashes). Keep it
+  **minimal — exactly these three things, nothing else** (no "what was built", no "needs from client",
+  no CRM/build recap):
   ```
-  :sparkles: *Production VSL Funnel Live*
+  :sparkles: *VSL Funnel Live: {{Company}}*
 
-  *{{Company}}*   `{{client_id}}`
-
-  > :link:  *Funnel:*  <{{liveUrl}}|{{liveUrl_short}}>
-  > :clapper:  *Built from demo:*  <{{demoUrl}}|demos.optimally.ltd/{{slug}}>
-  > :frame_with_picture:  *Framer project:*  `{{projectId}}`
-  > :repeat:  *Remix (go-live):*  <https://framer.com/projects/new?duplicate={{projectId}}|duplicate this funnel>
-
-  > :art:  *Brand:*  `{{primary}}`  /  `{{secondary}}`
-  > :white_check_mark:  *Status:*  Published  ·  Audit passed  ·  Pool row marked Live
+  > :link:  *URL:*  <{{liveUrl}}|{{liveUrl}}>
+  > :repeat:  *Remix:*  <https://framer.com/projects/new?duplicate={{projectId}}|duplicate this funnel>
   ```
-  If any inputs were placeholders, add a final line: `> :warning:  *To fill:*  {{placeholders}}` (e.g.
-  Typeform URL, production domain). On a FAILED run, post a short failure note instead (prospect + the
-  blocking reason + that the pool row was released) so the channel reflects reality.
+  On a FAILED run, post a one-line failure note instead (prospect + blocking reason + that the pool row
+  was released).
 
-Report: live URLs, the placeholders still to fill (client_id / domain / typeform_url), and to delete any
-unused components in the Framer assets panel.
+Report back to the caller (not Slack): live URL, remix link, client.
 
 ## Gotchas (these cost real time — heed them)
 See [[framer-agents]] for the full list. The big ones:
