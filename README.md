@@ -20,6 +20,15 @@ A remote routine has nothing installed. It should:
 git clone https://github.com/ReubenShears/framer-vsl-funnel-skill
 npx @framer/agent@latest setup          # installs the `framer` skill + CLI
 ```
+
+### Network egress (REQUIRED in the remote container)
+The Framer agent session is a **WebSocket to `api.framer.com`** — if it's not in the container's egress
+allowlist, `session new` fails with `FramerAPIError: No connection to the server` (while `project auth`
+misleadingly "saves" locally). The environment must allow:
+- **`*.framer.com`** — api + auth (the actual blocker is `api.framer.com`)
+- **`framerusercontent.com`** — screenshots (the mandatory audit downloads these) + asset uploads
+- **`*.framer.app`** — published-site verification
+- plus `github.com`, the npm registry, and `api.anthropic.com` (usually already allowed).
 Then **read and follow** `framer-vsl-funnel-skill/framer-vsl-funnel/SKILL.md` end to end. If it reports the
 project pool is empty, follow `framer-vsl-funnel-skill/framer-project-pool/SKILL.md` to top it up. The
 SKILL.md files are plain instructions — the agent reads and executes them; they don't need to be "installed".

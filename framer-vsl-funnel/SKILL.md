@@ -31,8 +31,9 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    `Prospect Name`, then `Slug`, then `Source URL`/`Live Demo URL`; if several, prefer `Status` =
    Deployed/Sent/Live and most recent `Date Generated`). Capture `Slug`, `Live Demo URL`, `Headline`, `ICP`,
    `Primary Colour`, `Secondary Colour`, `Logo URL`. If none match, stop and report "demo not found".
-2. **Get the demo CODE (source of truth for content + brand)** — `git -C "D:\Claude Cowork\demos" pull`, then
-   read **`D:\Claude Cowork\demos\<Slug>\index.html`** (repo `github.com/ReubenShears/demos`). The HTML wins
+2. **Get the demo CODE (source of truth for content + brand)** — clone the demos repo if you don't already
+   have it (`git clone https://github.com/ReubenShears/demos` — remote run won't have it locally; if a local
+   `demos` checkout exists, `git pull` it instead), then read **`<demos>/<Slug>/index.html`**. The HTML wins
    on copy/structure/sections; cross-check brand tokens against the Baserow row.
 3. **client_id / redirect_url / typeform_url** — from the client record (Client Data) where available;
    `client_id` is the UPPERCASE slug. If any are unknown, build with clearly-marked placeholders and flag them.
@@ -51,6 +52,14 @@ If any of client_id / redirect_url / typeform_url are unknown, build with clearl
 and flag them; the funnel structure still stands up.
 
 ## 1. Project + session — CLAIM a pool project (do NOT `project new`)
+
+> **Remote env network egress (REQUIRED).** The `@framer/agent` session uses a **WebSocket to
+> `api.framer.com`** — if the container's egress allowlist blocks it, `session new` fails with
+> `FramerAPIError: No connection to the server` (`project auth` still "saves" locally, which is misleading).
+> The routine env must allow: **`*.framer.com`** (api + auth), **`framerusercontent.com`** (screenshots
+> for the audit + asset uploads), and **`*.framer.app`** (published-site verification) — plus the
+> already-needed `github.com`, npm registry, and `api.anthropic.com`. If you hit this, release any claimed
+> pool row back to `Available` and report that this allowlist needs updating.
 
 This runs **headless/remote**, so never call `project new` (it needs a browser). Instead **claim a
 pre-authorized project from the pool** (see [[framer-project-pool]] — Baserow table `Framer Project Data`,
