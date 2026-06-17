@@ -234,8 +234,53 @@ Intro only: `appearEffect.trigger="onInView" enter.opacity="0" enter.y="14" ente
 on section headers; add `enter.stagger="0.07s"` on grids so cards cascade. CTA = the breathe loop (§3).
 **No hover lifts** on cards. (Static screenshots show the pre-reveal state — verify on the published URL.)
 
-## 10. Polish rules
+## 10. Design system + polish rules (be granular — these prevent the recurring drift)
 
+Do NOT set typography ad-hoc per section. Work from ONE fixed system so sizing, alignment, and contrast
+are deterministic and consistent across every section and breakpoint.
+
+### 10a. CRITICAL — `SET <node> text="…"` WIPES the node's styling back to defaults (16px, black, left)
+A RichTextNode's font/size/colour/alignment do NOT survive a later `SET text="…"` — Framer rebuilds the
+text with defaults. This silently breaks contrast (black text on a dark band), sizing (everything 16px),
+and alignment (everything left). It is the #1 cause of "titles wrong size / wrong colour / not aligned".
+**Rules:** (1) Set the FINAL copy at creation. (2) If you must edit copy afterwards (e.g. the en-dash
+pass in §10c), **re-apply the full style in the SAME `SET`** (fontName, fontWeight, fontSize, textColor,
+textAlignment, lineHeight, width, maxWidth) — or immediately follow with a style-only `SET`. (3) After any
+copy edit, screenshot and scan for the default signature: **16px black left-aligned** text where it
+shouldn't be.
+
+### 10b. Type scale (desktop / tablet / phone — px, on the RichText ROOT)
+| Role | Desktop | Tablet | Phone | Font |
+|------|---------|--------|-------|------|
+| Hero H1 | 52 | 40 | 30 | display (Archivo Black) |
+| **Section H2 (ALL sections, uniform)** | **36** | 30 | 25 | display |
+| Founder / side-module H2 | 30 | 26 | 24 | display |
+| Card H3 title | 18–20 | same | same | display |
+| Eyebrow (kicker) | 13 (700, letterSpacing 1.4px) | same | same | body |
+| Subline / section sub | 17–18 | 16 | 15 | body |
+| Card body | 15–16 | same | same | body |
+| Caption / fine | 13–14 | same | same | body |
+| Confirmed H1 | 40 | 32 | 27 | display |
+Keep ALL section H2 the SAME size — never let one section be 38 and another 34.
+
+### 10c. Alignment system (consistency is the goal)
+- **Every section header is CENTERED:** eyebrow + H2 + sub all `textAlignment="center"`, AND the
+  header block is centered in its section — set the section's inner wrapper `stackAlignment="center"`
+  (otherwise a `maxWidth` header sits left even with centered text).
+- **Hero fully centered** (logo row, eyebrow, H1, sublines, caption, CTA, rating) — §2.
+- **Card GRIDS stay full width; card INTERNAL content is left-aligned** (icon, title, body).
+- **CTA instances centered** in their section.
+- Founder may be a 2-col left module (the one allowed exception) — keep its own internals consistent.
+
+### 10d. Contrast — pick text colour FROM the section background, never a global default
+- **On light bg** (cream `#FFF7ED` / white): titles = ink `#111`; body = `rgba(17,17,17,0.65–0.7)`;
+  eyebrow/accents = brand colour.
+- **On dark/brand band** (deep green, etc.): titles = cream `#FFF7ED`; body = `rgba(255,247,237,0.7)`;
+  eyebrow/stat-numbers = the BRIGHT accent (e.g. `#2ca800`). **NEVER** ink/dark text on a dark band.
+- When you add or restyle any text, decide its colour by its parent section's `fill`. Verify on the
+  published screenshot that every title/body is legible on its band.
+
+### 10e. Other polish
 - **No em dashes** anywhere (looks AI-generated). Replace `—` with `-`; in titles/metadata use `|`.
 - **CRITICAL — never use a spaced hyphen `" - "` as a clause separator.** Framer's render-time
   **smart typography** silently converts `" - "` into an **en-dash `–`** on the published site (the DSL
@@ -255,8 +300,21 @@ on section headers; add `enter.stagger="0.07s"` on grids so cards cascade. CTA =
 `framer.agent.reviewChanges()` after edits, then `framer.agent.publish({action:"preview"})` →
 `{action:"confirm_publish", confirmationHash}`. Verify pages by screenshotting the **published URL**
 (`readProject [{type:"screenshot", url}]`) — overlays/animations don't show in canvas/static shots, so
-the modal must be click-tested live. Report: live URLs, the placeholders still to fill (client_id /
-domain / typeform_url), and to delete any unused components in the Framer assets panel.
+the modal must be click-tested live.
+
+**Because scroll-reveal sections render at `opacity:0` in a published static screenshot, also capture each
+section as a CANVAS shot by node id** (`readProject [{type:"screenshot", id:"<sectionId>"}]`) — canvas
+ignores `appearEffect`, so this is how you actually QA content/typography. Run this **QA scan** on every
+section before declaring done:
+- **Type scale:** every section H2 is the same size (§10b); no title shrunk to ~16px.
+- **Alignment:** every section header is centered; hero is fully centered; CTA centered (§10c).
+- **Contrast:** no dark/ink text on a dark band; no cream text on a light band (§10d).
+- **Default-signature:** no text accidentally 16px / black / left (the `SET text` styling-wipe — §10a).
+- **No en-dashes:** scan for `–` from the smart-typography conversion (§10c).
+- **No clipping:** every page breakpoint is `height="auto"` (§2); content runs to the footer.
+
+Report: live URLs, the placeholders still to fill (client_id / domain / typeform_url), and to delete any
+unused components in the Framer assets panel.
 
 ## Gotchas (these cost real time — heed them)
 See [[framer-agents]] for the full list. The big ones:
