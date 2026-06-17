@@ -38,14 +38,26 @@ edits go through `framer.agent.applyChanges(dsl, { pagePath })`.
 If any of client_id / redirect_url / typeform_url are unknown, build with clearly-marked placeholders
 and flag them; the funnel structure still stands up.
 
-## 1. Project + session
+## 1. Project + session — CLAIM a pool project (do NOT `project new`)
 
-```bash
-npx @framer/agent@latest project new      # browser approval (interactive). Headless: project auth <url> <apiKey>
-npx @framer/agent@latest session new "<projectId>"   # returns sessionId; use -s <id> on every call
-```
-Load `framer-project-<id>` skill. Resolve brand fonts via `framer.agent.readProject([{type:"font-search",name:"<font>"}])`.
-Confirm available icon sets (`Logos`, `Lucide`) and shaders.
+This runs **headless/remote**, so never call `project new` (it needs a browser). Instead **claim a
+pre-authorized project from the pool** (see [[framer-project-pool]] — Baserow table `Framer Project Data`,
+id `1033106`). Lease pattern:
+
+1. **Claim** the first `Status = "Available"` row: `update_rows` to set `Status="Claimed"`,
+   `Claimed By="<client_id>"`, `Claimed At=<now>`. Re-read the row; if `Claimed By` ≠ this client, another
+   run grabbed it — take the next Available row (guards the race). If none are Available, STOP and flag the
+   pool is empty (top it up with the `framer-project-pool` skill).
+2. **Authenticate headlessly** with that row's `Project ID` + `API Key`:
+   ```bash
+   npx @framer/agent@latest project auth "<Project ID>" "<API Key>"   # headless, no browser
+   npx @framer/agent@latest session new "<Project ID>"                 # returns sessionId; use -s <id>
+   ```
+3. Load `framer-project-<id>` skill. Resolve brand fonts via
+   `framer.agent.readProject([{type:"font-search",name:"<font>"}])`. Confirm icon sets (`Logos`, `Lucide`) + shaders.
+4. **On completion**, update the claimed row: `Status="Live"`, write the live `.framer.app` URL into `Notes`
+   (custom domain is connected later by remixing). On failure, set `Status="Error"` with a note so the pool
+   stays trustworthy (don't silently leave it `Claimed`).
 
 ## 2. Build the funnel landing page (recreate the demo)
 
