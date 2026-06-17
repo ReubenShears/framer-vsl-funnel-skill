@@ -46,10 +46,24 @@ them as blocking:
    logo frame to the SVG's exact aspect ratio, or for a text wordmark use `width="auto"` and do not clip.
 5. **Slack to the right channel.** Post the completion notice to **`C0AN653QCF2` (#5-asset-generation)** —
    the asset-generation channel — NOT any other channel (§11).
+6. **No text clipped ANYWHERE.** Every text node renders in full on every breakpoint — no cropped logo,
+   no cut-off card titles/bodies, no truncated avatars caption. Card/feature text is `width="100%"`
+   (vertical stack) or `width="1fr"` (beside a fixed sibling), NEVER a fixed px width that crops (§10e).
+   The rect-overflow audit (gate 3) must show 0 overflow; also eyeball each section's canvas shot.
+7. **`/confirmed` is COMPLETE** (§8) — all 7 sections: action banner, hero+VSL, three-things, **6 pre-call
+   FAQ videos**, testimonial wall, urgency line, footer. A stub confirmation page is a failed build.
+8. **Custom code is the FULL config block** (§6) — includes the webinar branch (`use_webinar`/`webinar_id`,
+   `.../form` checkout when webinar), full UTM passthrough, and the `/typeform` redirect + SPA observer.
+   Do not ship a trimmed-down version.
 
 Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
-declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, or an unrun audit is
-a FAILED run even if all the sections exist.
+declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, clipped text, a stub
+`/confirmed`, or an unrun audit is a FAILED run even if the home-page sections exist.
+
+> **Model:** this build is long and detail-heavy — run it on the most capable model (Opus 4.8). On a
+> weaker model the agent cuts exactly these corners (skips breakpoints/audit, stubs `/confirmed`, clips
+> text). If you are not on a top-tier model, do the gates even more literally; if you're configuring the
+> routine, set its model to Opus 4.8.
 
 ---
 
@@ -235,6 +249,12 @@ Framer CLI sets only the 4 global slots (headStart/headEnd/bodyStart/bodyEnd), n
 everything in `bodyEnd` and gate page-specific logic on `window.location.pathname`, with a MutationObserver
 for SPA navigation. Put ALL editable values in ONE clearly-numbered config block at the top.
 
+**Paste the block below VERBATIM — do not simplify, trim, or drop parts.** A failed run shipped a
+cut-down config with NO webinar handling. The config MUST keep all of: `use_webinar` + `webinar_id`, the
+webinar-vs-non-webinar `checkout_base` (`.../form` when `use_webinar`), the full UTM/ad/partner/closer/
+setter/adset passthrough, AND the path-gated `/typeform` redirect + SPA MutationObserver. Set `use_webinar`
+from the inputs (default `false`); never omit the webinar branch even when false.
+
 ```html
 <script>
 /* ===== OPTIMALLY FUNNEL CONFIG — EDIT ONLY THIS BLOCK ===== */
@@ -291,12 +311,22 @@ code redirects it to the prefilled Typeform.
 
 ## 8. Confirmation page `/confirmed` (show-rate optimised)
 
-`framer.createWebPage("/confirmed")`. Structure (from the Optimally SOPs — see [[framer-agents]]):
-action banner ("your call isn't fully confirmed until you complete the steps below") → **hero with the
-VSL high under the title** (single "watch this" line; logo instead of a badge) → "Three things to do"
-(check email / how to prepare; no dynamic add-to-calendar) → **pre-call FAQ videos** (6 breakout videos,
-each a VSL-Embed instance at 320×180 / fluid phone, titled with a question) → **testimonial wall** →
-urgency/reschedule line → Footer component. `metadata.title` uses "|" not a dash; set `socialImage`.
+`framer.createWebPage("/confirmed")`. This page is NOT optional and NOT a stub — it must contain ALL of
+the sections below, in order. A `/confirmed` with only a hero + a "what to expect" block is a FAILED
+build (it happened — don't repeat it). Build every one, then give it Tablet/Phone breakpoints + `height="auto"`
+like the home page, and include it in the §11 audit. Required sections, top to bottom:
+
+1. **Action banner** — "Your call is NOT fully confirmed until you complete the steps below."
+2. **Hero** — logo (not a badge), eyebrow ("YOU'RE BOOKED IN"), H1 (single "Brilliant, now watch this"
+   line), one subline, then the **VSL high under the title** (full-width like the home hero, §4).
+3. **"Three things to do before we speak"** — 3 cards (check your email / come prepared / be somewhere quiet).
+4. **Pre-call FAQ videos** — **6** breakout videos, each a VSL-Embed instance (`320×180` desktop/tablet,
+   fluid phone, §4), each titled with a question. (This whole section was skipped in a failed run — include it.)
+5. **Testimonial wall** — at least 3 testimonial cards.
+6. **Urgency / reschedule line** — short paragraph about showing up on time.
+7. **Footer** — the Footer component instance.
+
+`metadata.title` uses "|" not a dash; `metadata.noIndex="true"`; set `socialImage`.
 
 ## 9. Animations (subtle)
 
