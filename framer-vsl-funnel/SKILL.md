@@ -23,6 +23,36 @@ edits go through `framer.agent.applyChanges(dsl, { pagePath })`.
 
 ---
 
+## ⛔ DEFINITION OF DONE — non-negotiable gates (read FIRST, enforce LAST)
+
+A build is NOT done — do NOT publish, do NOT hand off, do NOT post to Slack — until you have
+**executed and reported the result of every check below**. Building the desktop sections is ~50% of the
+job; skipping the rest produces a broken funnel. These have been the actual failure points, so treat
+them as blocking:
+
+1. **Breakpoints exist on EVERY page.** Each of `/`, `/typeform`, `/confirmed` must have **Tablet (810)
+   and Phone (390)** breakpoints (`CREATE_VARIANT`), plus the responsive overrides in §10b/§10c (grids
+   collapse, type scale shrinks, horizontal stacks stack, VSL resizes). Verify with `readProject` that
+   each page reports 3 breakpoints. "I built the desktop layout" is NOT done.
+2. **Every page breakpoint is `height="auto"`.** New Framer pages default to a FIXED ~1000px height that
+   CLIPS the page. `SET <breakpointId> height="auto"` on Desktop **and** Tablet **and** Phone of every
+   page. Verify each is `auto`, not a px value.
+3. **The REAL audit ran and returned clean.** Listing the sections is NOT an audit. You MUST run the §11
+   automated rect-overflow + flex-risk script on **all three breakpoints of `/` and `/confirmed`** and
+   **paste its output** — it must be `0 overflow / 0 flex-risk` — then the per-section visual QA (type
+   scale, alignment, contrast, the 16px/black/left default-signature, logo not clipped, FAQ closed shows
+   only the question). If you did not paste audit output, you are not done.
+4. **Logo not clipped.** The wordmark/logo must render in full (no `ustRela` style cropping). Size the
+   logo frame to the SVG's exact aspect ratio, or for a text wordmark use `width="auto"` and do not clip.
+5. **Slack to the right channel.** Post the completion notice to **`C0AN653QCF2` (#5-asset-generation)** —
+   the asset-generation channel — NOT any other channel (§11).
+
+Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
+declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, or an unrun audit is
+a FAILED run even if all the sections exist.
+
+---
+
 ## 0. Inputs to gather (resolve these yourself from a `prospect` identifier)
 
 You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain). Resolve everything else:
@@ -352,6 +382,11 @@ the modal must be click-tested live.
 **MANDATORY final full audit — do NOT declare done without it.** Quality drifts silently (styling wipes,
 overflow clips, contrast, peeking answers), so end EVERY build/dry-run with both an automated rect audit
 and a visual QA scan.
+
+> **A list of "sections present" is NOT an audit.** Confirming the 10 sections exist tells you nothing
+> about breakpoints, clipping, overflow, or contrast — it is the #1 way runs falsely declare success.
+> The audit below MUST actually execute the script, on all three breakpoints, and you MUST paste its
+> output. No pasted `0 overflow / 0 flex-risk` result = not audited = not done.
 
 **(1) Automated overflow/clip audit (run on every page breakpoint).** Serialize the page deep and flag
 (a) any node whose rendered rect extends past its parent's right/bottom edge (true clipping), and (b) the
