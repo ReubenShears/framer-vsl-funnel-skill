@@ -69,7 +69,14 @@ them as blocking:
     `Framer Production URL` (live URL) AND `Framer Remix URL`
     (`https://framer.com/projects/new?duplicate=<projectId>`), only if the client row is found (else skip,
     don't create). The demo table (`Demo Landing Page Data` 1024310) is READ-ONLY; never overwrite the
-    demo's `Live Demo URL`.
+    demo's `Live Demo URL`. NO GHL/CRM writes.
+11. **CTAs are big & prominent** (§3) — 18px label, 20px/40px padding, chunky pill, centered; not small chips.
+12. **Every video is 16:9 on every breakpoint** (§4) — VSL + all pre-call FAQ videos locked via aspectRatio;
+    no squashed/letterbox player. The VSL embed is left BLANK (no demo-style fake player).
+13. **Nothing overflows the phone breakpoint** (§10e-ii) — banner + all text are `width="100%"` and wrap
+    inside 390; `width="auto"` only on chips/buttons.
+14. **`/typeform` is blank; `/privacy` + `/terms` pages exist** (§7, §8c) and the footer links point to them.
+15. **NO git** — never commit/branch/push/PR; demos repo read-only; skill cloned to /tmp (see top).
 
 Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
 declaring done. A funnel that publishes with fixed-height clipping, no breakpoints, clipped text, a stub
@@ -174,17 +181,26 @@ un-instantiated component's internals across batches fails — see Gotchas).
 
 - **CTA Button** — brand CTA colour (use the REAL brand CTA colour from the client's site, e.g. the
   lilac `#F0D7FF` pill with near-black text — NOT an invented colour). Controls: a `Label` string
-  Variable (bind the label RichText to `var(--variable-<id>)`; initial "Learn More"). Three size
-  variants Desktop/Tablet/Phone (~70-80% of the VSL width — chunky, primary). A continuous **scale
-  "breathe" loop** (`loopEffect.repeatType="mirror" loopEffect.scale="1.04"` and **explicitly zero
-  `loopEffect.rotate`/rotateX/Y/x/y/skew** or Framer spins it 360°). Expose an `On Click`
-  `+EventHandlerVariable` and fire it from the button's `onTap` (`TRIGGER_EVENT`, controls.id =
+  Variable (bind the label RichText to `var(--variable-<id>)`; initial "Learn More"). **Make it BIG and
+  prominent — it has been rendering too small.** Explicit minimums: label font **`18px` desktop / 17px
+  tablet / 16px phone, weight 600+**; padding **`20px 40px`** (≈18px/32px on phone); chunky pill
+  (`radius` to match brand). The button width should be **content-hugging but generous** (a wide tap
+  target), centered in its section — not a thin small chip. Three size variants Desktop/Tablet/Phone. A
+  continuous **scale "breathe" loop** (`loopEffect.repeatType="mirror" loopEffect.scale="1.04"` and
+  **explicitly zero `loopEffect.rotate`/rotateX/Y/x/y/skew** or Framer spins it 360°). Expose an `On
+  Click` `+EventHandlerVariable` and fire it from the button's `onTap` (`TRIGGER_EVENT`, controls.id =
   `var(--variable-<eventVarId>)`); remove the button's `link.href` (CTAs open the modal, not a link).
-- **VSL Embed** — a 16:9 `Player` frame (`aspectRatio="1.7778"`, `overflow="clip"`, brand-gradient
-  placeholder fill) containing a built-in Embed (`o1PI5S8YtkA5bP5g4dFz`) bound to controls: `Video URL`
-  (string), `Embed Type` (OptionVariable cases `["url","html"]`), `Embed Code` (string). Leave blank.
+- **VSL Embed** — a 16:9 `Player` frame: **lock the ratio with `aspectRatio="1.7778"` + `overflow="clip"`
+  on EVERY breakpoint** (so the video is always 16:9, never a squashed/tall rectangle), brand-gradient
+  placeholder fill + a centered play glyph. Contains a built-in Embed (`o1PI5S8YtkA5bP5g4dFz`) bound to
+  controls: `Video URL` (string), `Embed Type` (OptionVariable cases `["url","html"]`), `Embed Code`
+  (string). **Leave the embed BLANK and keep the inner embed layer hidden — an empty VSL is the EXPECTED
+  default** (we never have the video URL at build time). Do NOT build a demo-style video treatment or a
+  fake player to fill it; the clean gradient + play-button placeholder is correct. The client pastes the
+  real embed and toggles the inner layer visible later.
 - **Footer** — light (creamsoft, top border) so the dark logo renders: logo image, brand tagline,
-  nav links (Privacy · Terms · Contact), divider, copyright `© 2026 …`, the **"Site made by Optimally"**
+  nav links (Privacy → `/privacy`, Terms → `/terms` (real pages, see §8c), Contact → client mailto/`#`),
+  divider, copyright `© 2026 …`, the **"Site made by Optimally"**
   line where the word **Optimally** is a TextRun with `link.href="https://optimally.ltd/client-site?client=<client_id>"`
   (use the client's ID), and the **Meta disclaimer** fine print (REQUIRED — see [[meta-disclaimer-footer]]):
   "This site is not a part of the Facebook website or Facebook Inc. Additionally, this site is NOT
@@ -242,6 +258,12 @@ CTA/quote/trust (maxWidth 1024)]. Then size the VSL instance with **FIXED px on 
 
 Breakout / pre-call FAQ videos: **fixed `320px×180px` on desktop/tablet, `100%`/auto on phone.**
 Do NOT use relative `%` widths on desktop/tablet — they render wrong; use fixed px.
+
+**16:9 lock everywhere (REQUIRED).** Every video (hero VSL + all pre-call FAQ videos) must stay 16:9 on
+ALL breakpoints — the component carries `aspectRatio="1.7778"`, and wherever you set a fluid width
+(`width="100%"`) you MUST pair it with `height="auto"` (never a leftover fixed px height) so the ratio
+holds; wherever you set fixed px, use a true 16:9 pair (800×450, 600×337, 320×180). A squashed/letterbox
+video on any breakpoint is a fail — verify in the audit.
 
 ## 5. Opt-in modal wiring (CTAs → modal)
 
@@ -324,8 +346,9 @@ The opt-in modal Embed's HTML (`$control__hTML`, type `html`) — it calls the P
 ## 7. Blank /typeform redirect page
 
 `framer.createWebPage("/typeform")` (NOT the DSL `+WebPageNode` — that makes a page with no breakpoint).
-White fill, `metadata.noIndex="true"`, a small centered "Taking you to the application…" line. The site
-code redirects it to the prefilled Typeform.
+**Leave it BLANK** — just white fill + `metadata.noIndex="true"`. No "Taking you to the application…" text,
+no logo, nothing. The site code redirects it instantly to the prefilled Typeform, so any visible content
+just flashes; a blank white page is cleaner.
 
 ## 8. Confirmation page `/confirmed` (show-rate optimised)
 
@@ -365,6 +388,19 @@ Set them as the project's Social Preview + Favicon in Site Settings. If the CLI 
 images, OUTPUT both generated files and flag them as a one-click manual upload in Framer → Site Settings
 → Site Images (like the custom-domain step). Either way: the OG image must be a clean card, the favicon a
 clean mark — neither a stretched logo. Verify the published page's OG image renders correctly.
+
+## 8c. Privacy Policy + Terms pages (REQUIRED)
+
+The footer links to Privacy / Terms — so the pages must actually exist (don't leave dead links).
+`framer.createWebPage("/privacy")` and `framer.createWebPage("/terms")`. Each: white/brand background,
+the **Footer logo + a simple page header** (H1 "Privacy Policy" / "Terms of Service"), a "Last updated
+© 2026" line, and standard boilerplate body copy in the brand body font (generic, brand-neutral
+privacy/terms text — sections like Information We Collect / How We Use It / Cookies / Contact for privacy;
+Acceptance / Use of Site / Disclaimer / Liability / Contact for terms). Give both `metadata.noIndex` off
+(these SHOULD be indexable), give them Tablet/Phone breakpoints + `height="auto"` like every page, and end
+each with a **Footer component instance**. Then point the footer's **Privacy** and **Terms** nav links at
+`/privacy` and `/terms` (internal `link.href="/privacy"` etc.), and **Contact** at the client's contact
+(mailto or `#`). Keep these pages minimal — they exist for legitimacy + ad-platform compliance, not design.
 
 ## 9. Animations (subtle)
 
@@ -424,6 +460,14 @@ founder section), a text/content child set to `width="100%"` tries to be the ful
 **overflows past the fixed sibling — the right edge gets clipped** (text cut off mid-word). Always set the
 flexible child to `width="1fr"` so it takes the *remaining* space. This is a top cause of "text is cut
 off". (Vertical stacks are fine with `width="100%"`.)
+
+### 10e-ii. Text must FILL its container so it wraps — never `width="auto"` on body/banner/headline text
+A text node left at `width="auto"` sizes to its content and **runs past the breakpoint edge on phone**
+(seen on the announcement banner overflowing the 390 frame). Every banner / headline / subline / body text
+node must be **`width="100%"`** (fill the container so it wraps), with the container holding sensible
+horizontal padding (e.g. `20-24px`) and `maxWidth` for readability. On the Phone breakpoint specifically,
+re-check the banner + every heading wraps inside 390 with nothing bleeding past the edge (it's the most
+common overflow). `width="auto"` is only for inline chips/buttons/icons, never for sentences.
 
 ### 10f. Other polish
 - **No em dashes** anywhere (looks AI-generated). Replace `—` with `-`; in titles/metadata use `|`.
