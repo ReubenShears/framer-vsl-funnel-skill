@@ -206,7 +206,8 @@ un-instantiated component's internals across batches fails — see Gotchas).
 - **Footer** — light (creamsoft, top border) so the dark logo renders: logo image, brand tagline,
   nav links (Privacy → `/privacy`, Terms → `/terms` (real pages, see §8c), Contact → client mailto/`#`),
   divider, copyright `© 2026 …`, the **"Site made by Optimally"**
-  line where the word **Optimally** is a TextRun with `link.href="https://optimally.ltd/client-site?client=<client_id>"`
+  line where the word **Optimally** is a TextRun with `link.href="https://www.optimally.ltd/client-site?client=<client_id>"`
+  (**the `www.` is REQUIRED** — `optimally.ltd/client-site` without `www` fails to load)
   (use the client's ID), and the **Meta disclaimer** fine print (REQUIRED — see [[meta-disclaimer-footer]]):
   "This site is not a part of the Facebook website or Facebook Inc. Additionally, this site is NOT
   endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc." Place a Footer instance on every page.

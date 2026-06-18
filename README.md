@@ -46,4 +46,4 @@ skill loaded first (`npx @framer/agent@latest setup`).
 
 ---
 Built for Optimally. Funnel CTAs forward all tracking params (utm/ad/partner/closer/setter/adset) into the
-checkout; the footer credits `optimally.ltd/client-site?client=<client_id>`.
+checkout; the footer credits `https://www.optimally.ltd/client-site?client=<client_id>` (www required).
