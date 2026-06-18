@@ -70,7 +70,8 @@ them as blocking:
     (`https://framer.com/projects/new?duplicate=<projectId>`), only if the client row is found (else skip,
     don't create). The demo table (`Demo Landing Page Data` 1024310) is READ-ONLY; never overwrite the
     demo's `Live Demo URL`. NO GHL/CRM writes.
-11. **CTAs are big & prominent** (§3) — 18px label, 20px/40px padding, chunky pill, centered; not small chips.
+11. **CTAs are big & prominent, labelled "Learn More"** (§3) — 18px label, 20px/40px padding, centered,
+    radius matching the brand; every CTA reads "Learn More" (no custom/demo CTA copy).
 12. **Every video is 16:9 on every breakpoint** (§4) — VSL + all pre-call FAQ videos locked via aspectRatio;
     no squashed/letterbox player. The VSL embed is left BLANK (no demo-style fake player).
 13. **Nothing overflows the phone breakpoint** (§10e-ii) — banner + all text are `width="100%"` and wrap
@@ -181,11 +182,15 @@ un-instantiated component's internals across batches fails — see Gotchas).
 
 - **CTA Button** — brand CTA colour (use the REAL brand CTA colour from the client's site, e.g. the
   lilac `#F0D7FF` pill with near-black text — NOT an invented colour). Controls: a `Label` string
-  Variable (bind the label RichText to `var(--variable-<id>)`; initial "Learn More"). **Make it BIG and
-  prominent — it has been rendering too small.** Explicit minimums: label font **`18px` desktop / 17px
-  tablet / 16px phone, weight 600+**; padding **`20px 40px`** (≈18px/32px on phone); chunky pill
-  (`radius` to match brand). The button width should be **content-hugging but generous** (a wide tap
-  target), centered in its section — not a thin small chip. Three size variants Desktop/Tablet/Phone. A
+  Variable. **The label is ALWAYS "Learn More" by default** — set the variable initial to "Learn More"
+  AND leave every instance on "Learn More". Do NOT write custom CTA copy or pull the demo's CTA text
+  (no "Get My Free Audit" / "Discover Your X"); every CTA across all pages reads "Learn More" unless the
+  user later says otherwise. **Make it BIG and prominent — it has been rendering too small.** Explicit
+  minimums: label font **`18px` desktop / 17px tablet / 16px phone, weight 600+**; padding **`20px 40px`**
+  (≈18px/32px on phone). **Radius: match the brand/design** — read the demo's button style and mirror it
+  (full pill, soft-rounded, or near-square as the brand dictates); don't force a fixed value. The button
+  width should be **content-hugging but generous** (a wide tap target), centered in its section — not a
+  thin small chip. Three size variants Desktop/Tablet/Phone. A
   continuous **scale "breathe" loop** (`loopEffect.repeatType="mirror" loopEffect.scale="1.04"` and
   **explicitly zero `loopEffect.rotate`/rotateX/Y/x/y/skew** or Framer spins it 360°). Expose an `On
   Click` `+EventHandlerVariable` and fire it from the button's `onTap` (`TRIGGER_EVENT`, controls.id =
