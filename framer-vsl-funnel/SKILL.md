@@ -105,8 +105,20 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    repo. The HTML wins on copy/structure/sections; cross-check brand tokens against the Baserow row.
 3. **client_id / redirect_url / typeform_url** — look up the client row in **`Client Data` (1000911)**
    (match `Client ID`, else `Company` ≈ prospect). Read **`Typeform URL`** (field `9096231`) for
-   `typeform_url`. `client_id` is the UPPERCASE slug; `redirect_url` is `https://<domain>/typeform`. If the
-   client row or a value is missing, build with clearly-marked placeholders and flag them (don't block).
+   `typeform_url`. `client_id` is the UPPERCASE slug; `redirect_url` is `https://<domain>/typeform`.
+   **If `Typeform URL` is empty, build the opt-in first — don't ship a placeholder Typeform.** Clone the
+   opt-in builder read-only into a temp dir and follow it for this `client_id`:
+   ```bash
+   git clone https://github.com/ReubenShears/typeform-opt-in-skill /tmp/typeform-opt-in-skill
+   # then read and follow /tmp/typeform-opt-in-skill/typeform-opt-in/SKILL.md for <client_id>
+   ```
+   That skill builds the opt-in **in the Optimally Typeform account via Composio (account
+   `optimally-internal`)**, applies the `lead-survey` webhook (its public copy redacts the URL but
+   recovers the live one from the `DUPLICATE FOR OPT-IN` template's "Webhook Link" marker slide — no
+   secret needed), and **writes the new URL back to the row's `Typeform URL`**. After it finishes,
+   **re-read `Typeform URL`** and verify it's a real `optimally.typeform.com/to/...` link before
+   continuing. Only if that build genuinely cannot run should you fall back to a clearly-marked
+   placeholder and flag it (don't silently block).
 
 | Input | Notes |
 |-------|-------|
