@@ -112,11 +112,15 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    git clone https://github.com/ReubenShears/typeform-opt-in-skill /tmp/typeform-opt-in-skill
    # read and follow /tmp/typeform-opt-in-skill/typeform-opt-in/SKILL.md, passing:
    #   client_id   = <client_id>
-   #   base_domain = <the funnel domain you already resolved for redirect_url>
+   #   base_domain = <Base Funnel Domain from Baserow if set; if blank, leave it provisional —
+   #                  you will repoint the redirects to the live Framer URL after publish (see §11)>
    #   icp_min     = <ICP min revenue from the demo/client row, if known>
    ```
-   Passing `base_domain` matters: it means the opt-in build never stalls on a missing
-   `Base Funnel Domain` (headless, it would otherwise predict one by intuition). That skill builds the
+   `base_domain` drives the opt-in's `/confirmed` + `/uq-confirmed` redirects. If Baserow has a
+   `Base Funnel Domain`, pass it. **If it's blank you don't have the real domain yet** — the funnel
+   isn't published at this step — so still build the opt-in now (you need its `typeform_url` for the
+   funnel's `/typeform` page), let its redirects be provisional, and **finalize them after publishing
+   with the live `.framer.app` URL Framer returns** (§11 handoff). That skill builds the
    opt-in **in the Optimally Typeform account via Composio (account `optimally-internal`)**, applies the `lead-survey` webhook (its public copy redacts the URL but
    recovers the live one from the `DUPLICATE FOR OPT-IN` template's "Webhook Link" marker slide — no
    secret needed), and **writes the new URL back to the row's `Typeform URL`**. After it finishes,
@@ -552,6 +556,13 @@ canvas ignores `appearEffect` — and check every section:
 Fix everything the audit surfaces, republish, and re-run the audit until clean.
 
 **Handoff** (once the audit is clean):
+- **Finalize the opt-in redirects (only if they were provisional)** — if you built the opt-in this run
+  WITHOUT a real `Base Funnel Domain`, the live domain is now known, so repoint it: set the client
+  Typeform's two `url_redirect` endings — `end_confirmed` → `<live .framer.app URL>/confirmed` and
+  `end_uq` → `<live .framer.app URL>/uq-confirmed` — via a `TYPEFORM_UPDATE_FORM`
+  (`COMPOSIO_MULTI_EXECUTE_TOOL`, `account: "optimally-internal"`), then complete the form once to
+  confirm each ending redirects to the published funnel. Skip this if the opt-in already used a real
+  Baserow domain. (When the custom domain is connected later by remixing, repoint these to it too.)
 - **Pool row** (`Framer Project Data` 1033106) → `Status="Live"`, live `.framer.app` URL into `Notes`.
   If you claimed a row but failed before publish, set it `Status="Error"` with a note — never leave it `Claimed`.
 - **Client record** (`Client Data` table `1000911`) — find the client row (match `Client ID` = the
