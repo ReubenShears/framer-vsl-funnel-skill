@@ -110,17 +110,12 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    opt-in builder read-only into a temp dir and follow it for this `client_id`:
    ```bash
    git clone https://github.com/ReubenShears/typeform-opt-in-skill /tmp/typeform-opt-in-skill
-   # read and follow /tmp/typeform-opt-in-skill/typeform-opt-in/SKILL.md, passing:
-   #   client_id   = <client_id>
-   #   base_domain = <Base Funnel Domain from Baserow if set; if blank, leave it provisional —
-   #                  you will repoint the redirects to the live Framer URL after publish (see §11)>
-   #   icp_min     = <ICP min revenue from the demo/client row, if known>
+   # read and follow /tmp/typeform-opt-in-skill/typeform-opt-in/SKILL.md for client_id = <client_id>
    ```
-   `base_domain` drives the opt-in's `/confirmed` + `/uq-confirmed` redirects. If Baserow has a
-   `Base Funnel Domain`, pass it. **If it's blank you don't have the real domain yet** — the funnel
-   isn't published at this step — so still build the opt-in now (you need its `typeform_url` for the
-   funnel's `/typeform` page), let its redirects be provisional, and **finalize them after publishing
-   with the live `.framer.app` URL Framer returns** (§11 handoff). That skill builds the
+   It needs only the `client_id` — it reads everything else (the ICP signals, the `Qualified Calendar URL`
+   / `Unqualified Calendar URL`) from the client row itself. The opt-in **redirects to Calendly**, not to
+   this funnel's domain, so it does NOT depend on the funnel being published — there's no domain to pass
+   and nothing to finalize later. That skill builds the
    opt-in **in the Optimally Typeform account via Composio (account `optimally-internal`)**, applies the `lead-survey` webhook (its public copy redacts the URL but
    recovers the live one from the `DUPLICATE FOR OPT-IN` template's "Webhook Link" marker slide — no
    secret needed), and **writes the new URL back to the row's `Typeform URL`**. After it finishes,
@@ -220,11 +215,13 @@ un-instantiated component's internals across batches fails — see Gotchas).
   placeholder fill + a centered play glyph. Contains a built-in Embed (`o1PI5S8YtkA5bP5g4dFz`) bound to
   controls: `Video URL` (string), `Embed Type` (OptionVariable cases `["url","html"]`), `Embed Code`
   (string). **Leave the embed BLANK and keep the inner embed layer hidden — an empty VSL is the EXPECTED
-  default** (we never have the video URL at build time). Do NOT build a demo-style video treatment or a
+  default** (we usually don't have the video at build time). Do NOT build a demo-style video treatment or a
   fake player to fill it; the clean gradient + play-button placeholder is correct. The client pastes the
-  real embed and toggles the inner layer visible later.
+  real embed and toggles the inner layer visible later. **Exception:** if the client row's
+  **`VSL Embed Code / URL`** (id `9134563`) is populated, use it — set `Embed Code` + `Embed Type="html"`
+  (or `Video URL` + `Embed Type="url"` for a bare URL) and make the inner embed layer visible.
 - **Footer** — light (creamsoft, top border) so the dark logo renders: logo image, brand tagline,
-  nav links (Privacy → `/privacy`, Terms → `/terms` (real pages, see §8c), Contact → client mailto/`#`),
+  nav links (Privacy → `/privacy`, Terms → `/terms` (real pages, see §8c), Contact → `mailto:` the client row's `Contact Email` if set else `#`),
   divider, copyright `© 2026 …`, the **"Site made by Optimally"**
   line where the word **Optimally** is a TextRun with `link.href="https://www.optimally.ltd/client-site?client=<client_id>"`
   (**the `www.` is REQUIRED** — `optimally.ltd/client-site` without `www` fails to load)
@@ -425,8 +422,8 @@ privacy/terms text — sections like Information We Collect / How We Use It / Co
 Acceptance / Use of Site / Disclaimer / Liability / Contact for terms). Give both `metadata.noIndex` off
 (these SHOULD be indexable), give them Tablet/Phone breakpoints + `height="auto"` like every page, and end
 each with a **Footer component instance**. Then point the footer's **Privacy** and **Terms** nav links at
-`/privacy` and `/terms` (internal `link.href="/privacy"` etc.), and **Contact** at the client's contact
-(mailto or `#`). Keep these pages minimal — they exist for legitimacy + ad-platform compliance, not design.
+`/privacy` and `/terms` (internal `link.href="/privacy"` etc.), and **Contact** at the client row's `Contact Email`
+(`mailto:`) if set, else `#`. Keep these pages minimal — they exist for legitimacy + ad-platform compliance, not design.
 
 ## 8d. Disqualified page `/uq-confirmed` (create it, then LEAVE IT BLANK — do NOT build it out)
 
@@ -566,13 +563,15 @@ canvas ignores `appearEffect` — and check every section:
 Fix everything the audit surfaces, republish, and re-run the audit until clean.
 
 **Handoff** (once the audit is clean):
-- **Finalize the opt-in redirects (only if they were provisional)** — if you built the opt-in this run
-  WITHOUT a real `Base Funnel Domain`, the live domain is now known, so repoint it: set the client
-  Typeform's two `url_redirect` endings — `end_confirmed` → `<live .framer.app URL>/confirmed` and
-  `end_uq` → `<live .framer.app URL>/uq-confirmed` — via a `TYPEFORM_UPDATE_FORM`
-  (`COMPOSIO_MULTI_EXECUTE_TOOL`, `account: "optimally-internal"`), then complete the form once to
-  confirm each ending redirects to the published funnel. Skip this if the opt-in already used a real
-  Baserow domain. (When the custom domain is connected later by remixing, repoint these to it too.)
+- **Write the funnel page URLs back to `Client Data`** — these feed the manual Calendly wire-up (they are
+  the redirect targets you paste into each Calendly calendar's post-booking redirect). Using the live
+  domain (`<live .framer.app URL>`, or the custom domain once it's connected):
+  - **`Qualified Confirmation Page URL`** (id `9134523`) = `<domain>/confirmed`
+  - **`Unqualified Confirmation Page URL`** (id `9134525`) = `<domain>/uq-confirmed`
+  - **`Privacy Policy URL`** (id `9134531`) = `<domain>/privacy`
+  - **`Terms & Conditions URL`** (id `9134556`) = `<domain>/terms`
+  (The opt-in Typeform redirects to **Calendly**, not to these pages — so there's nothing to finalize on
+  the Typeform side. Calendly is what redirects bookers to `/confirmed` / `/uq-confirmed`, set by the human.)
 - **Pool row** (`Framer Project Data` 1033106) → `Status="Live"`, live `.framer.app` URL into `Notes`.
   If you claimed a row but failed before publish, set it `Status="Error"` with a note — never leave it `Claimed`.
 - **Client record** (`Client Data` table `1000911`) — find the client row (match `Client ID` = the
