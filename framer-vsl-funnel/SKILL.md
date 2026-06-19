@@ -110,10 +110,14 @@ You are typically given only a **`prospect`** (a Prospect Name, Slug, or domain)
    opt-in builder read-only into a temp dir and follow it for this `client_id`:
    ```bash
    git clone https://github.com/ReubenShears/typeform-opt-in-skill /tmp/typeform-opt-in-skill
-   # then read and follow /tmp/typeform-opt-in-skill/typeform-opt-in/SKILL.md for <client_id>
+   # read and follow /tmp/typeform-opt-in-skill/typeform-opt-in/SKILL.md, passing:
+   #   client_id   = <client_id>
+   #   base_domain = <the funnel domain you already resolved for redirect_url>
+   #   icp_min     = <ICP min revenue from the demo/client row, if known>
    ```
-   That skill builds the opt-in **in the Optimally Typeform account via Composio (account
-   `optimally-internal`)**, applies the `lead-survey` webhook (its public copy redacts the URL but
+   Passing `base_domain` matters: it means the opt-in build never stalls on a missing
+   `Base Funnel Domain` (headless, it would otherwise predict one by intuition). That skill builds the
+   opt-in **in the Optimally Typeform account via Composio (account `optimally-internal`)**, applies the `lead-survey` webhook (its public copy redacts the URL but
    recovers the live one from the `DUPLICATE FOR OPT-IN` template's "Webhook Link" marker slide — no
    secret needed), and **writes the new URL back to the row's `Typeform URL`**. After it finishes,
    **re-read `Typeform URL`** and verify it's a real `optimally.typeform.com/to/...` link before
