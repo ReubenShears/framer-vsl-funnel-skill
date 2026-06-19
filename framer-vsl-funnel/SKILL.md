@@ -76,7 +76,7 @@ them as blocking:
     no squashed/letterbox player. The VSL embed is left BLANK (no demo-style fake player).
 13. **Nothing overflows the phone breakpoint** (§10e-ii) — banner + all text are `width="100%"` and wrap
     inside 390; `width="auto"` only on chips/buttons.
-14. **`/typeform` is blank; `/privacy` + `/terms` pages exist** (§7, §8c) and the footer links point to them.
+14. **`/typeform` AND `/uq-confirmed` are blank stubs (do NOT build out `/uq-confirmed`); `/privacy` + `/terms` pages exist** (§7, §8d, §8c) and the footer links point to them.
 15. **NO git** — never commit/branch/push/PR; demos repo read-only; skill cloned to /tmp (see top).
 
 Report each gate's result in your final summary. If any gate fails, fix → republish → re-check before
@@ -427,6 +427,16 @@ Acceptance / Use of Site / Disclaimer / Liability / Contact for terms). Give bot
 each with a **Footer component instance**. Then point the footer's **Privacy** and **Terms** nav links at
 `/privacy` and `/terms` (internal `link.href="/privacy"` etc.), and **Contact** at the client's contact
 (mailto or `#`). Keep these pages minimal — they exist for legitimacy + ad-platform compliance, not design.
+
+## 8d. Disqualified page `/uq-confirmed` (create it, then LEAVE IT BLANK — do NOT build it out)
+
+The opt-in's disqualification routing redirects unqualified leads to `<domain>/uq-confirmed`, so the page
+must EXIST or those leads hit a 404 — but that is the ONLY reason it exists. It is a deliberate dead-end
+for leads you are not pursuing, so it gets **zero build effort**. `framer.createWebPage("/uq-confirmed")`
+and **leave it blank**: white fill + `metadata.noIndex="true"`, nothing else. Do NOT design it — no hero,
+no "thanks, we'll be in touch" copy, no sections, no footer, no breakpoint work. A capable run will be
+*tempted* to build it out because it can (it has happened); resist that. A blank page here is correct, not
+lazy — the agency handles unqualified leads off-site, so the page is a redirect catch only.
 
 ## 9. Animations (subtle)
 
